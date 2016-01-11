@@ -1,7 +1,0 @@
-[{"cat_id":1,"description":"Electronics & Computers","sub_categories":[{"cat_id":2,"description":"Phones"},{"cat_id":3,"description":"Laptops"},  {"cat_id":4,"description":"TVs"}]},
- {"cat_id":5,"description":"Sports", "sub_categories":[{"cat_id":6,"description":"Football"},{"cat_id":7,"description":"Basketball"}, {"cat_id":9,"description":"Tennis"}]}, 
- {"cat_id":10,"description":"Movies", "sub_categories":[{"cat_id":11,"description":"Action"},{"cat_id":12,"description":"Comedy"}, {"cat_id":13,"description":"Thriller"}]}, 
- {"cat_id":14,"description":"Clothing", "sub_categories":[{"cat_id":15,"description":"Men"},{"cat_id":16,"description":"Women"}]}
- ]
-
-
