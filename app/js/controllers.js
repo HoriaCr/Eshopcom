@@ -30,3 +30,7 @@ monshopControllers.controller('ProductDetailCtrl', ['$scope', '$routeParams', 'P
       $scope.mainImageUrl = imageUrl;
     };
   }]);
+
+
+monshopControllers.controller('LoginCtrl');
+monshopControllers.controller('SignupCtrl');
