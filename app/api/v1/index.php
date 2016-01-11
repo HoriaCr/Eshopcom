@@ -2,6 +2,8 @@
 require 'vendor/autoload.php';
 require_once 'mongo_conf.php';
 
+error_reporting(E_ALL);
+ini_set('display_errors', 'on');
 // Get Slim instance
 $app = new \Slim\App();
 
@@ -14,17 +16,51 @@ function getMongo() {
     return $db;
 }
 
-function isUserRegistered($username) {
-    $userQuery = array(
-        'username' => $username,
-    );
-    $db = getMongo();
-    $user = $db->users->findOne($userQuery);
-    // username is already registered
-    if ($user != null) {
-        return True;
+
+function getSession(){
+    if (!isset($_SESSION)) {
+        session_start();
     }
-    return False;
+    $sess = array();
+    if(isset($_SESSION['uid']))
+    {
+        $sess["uid"] = $_SESSION['uid'];
+        $sess["name"] = $_SESSION['name'];
+        $sess["email"] = $_SESSION['email'];
+    }
+    else
+    {
+        $sess["uid"] = '';
+        $sess["name"] = 'Guest';
+        $sess["email"] = '';
+    }
+    return $sess;
+}
+
+function destroySession(){
+    if (!isset($_SESSION)) {
+    session_start();
+    }
+    if(isSet($_SESSION['uid']))
+    {
+        unset($_SESSION['uid']);
+        unset($_SESSION['name']);
+        unset($_SESSION['email']);
+        $info='info';
+        if(isSet($_COOKIE[$info]))
+        {
+            setcookie ($info, '', time() - $cookie_time);
+        }
+        $msg="Logged Out Successfully...";
+    }
+    else
+    {
+        $msg = "Not logged in...";
+    }
+    return $msg;
+}
+function passwordHash($email, $pass) {
+    return md5($email . $pass);
 }
 
 function isEmailRegistered($email) {
@@ -34,10 +70,10 @@ function isEmailRegistered($email) {
     $db = getMongo();
     $user = $db->users->findOne($userQuery);
     // email is already registered
-    if (user != null) {
-        return True;
+    if (is_null($user)) {
+        return False;
     }
-    return False;
+    return True;
 }
 
 $mw = function ($request, $response, $next) {
@@ -79,61 +115,107 @@ $app->get('/categories/{category}/{productId}', function($req, $res, $args) {
     return $res->write(json_encode($product, JSON_NUMERIC_CHECK));
 })->add($mw);
 
-$app->get('/users/email_registered/{email}', function($req, $res, $args)  { 
+$app->get('/email_registered/{email}', function($req, $res, $args)  { 
     if (isEmailRegistered($args['email'])) {
         return $res->withAddedHeader('status', 'error')->withStatus(200);
     }  
     return $res->withAddedHeader('status', 'success')->withStatus(200);
 });
 
-$app->get('/users/username_registered/{username}', function($req, $res, $args)  { 
-    if (isUsernameRegistered($args['username'])) {
-        return $res->withAddedHeader('status', 'error')->withStatus(200);
-    }  
-    return $res->withAddedHeader('status', 'success')->withStatus(200); 
+$app->get('/logout', function($req, $res, $args) {
+    $session = destroySession();
+    $response["status"] = "info";
+    $response["message"] = "Logged out successfully";
+    return $res->write(json_encode($response))->withStatus(200);
 });
 
-$app->get('/users/login/{username}{password}', function($req, $res, $args) { 
-    $saltedPass = md5($args['username'] . $args['password']); 
+$app->post('/login', function($req, $res, $args) { 
+    $user = $req->getParsedBody()["customer"];
+    $saltedPass = passwordHash($user['email'], $user['password']);
     $userQuery = array(
-        'username' => $args['username'],
-        'password' => $saltedPass
+        'email' => $user['email'],
     );
+    $db = getMongo();
     $user = $db->users->findOne($userQuery);
-    if (user != null) {
-        return $res->withAddedHeader('status', 'error')->withStatus(200);
-    }  
-    return $res->withAddedHeader('status', 'success')->withStatus(200);
-    
+     
+    if ($user != NULL) {
+        if ($user['password'] === $saltedPass) {
+            $response['status'] = "success";
+            $response['message'] = 'Logged in successfully.';
+            $response['name'] = $user['name'];
+            $response['uid'] = $user['_id'];
+            $response['email'] = $user['email'];
+            if (!isset($_SESSION)) {
+                session_start();
+            }
+            $_SESSION['uid'] = $user['_id'];
+            $_SESSION['email'] = $user['email'];
+            $_SESSION['name'] = $user['name'];
+        } else {
+            $response['status'] = "error";
+            $response['message'] = 'Login failed. Incorrect credentials';
+            return $res->write(json_encode($response))->withStatus(201);
+        }
+    } else {
+            $response['status'] = "error";
+            $response['message'] = 'No such user is registered';
+
+            return $res->write(json_encode($response))->withStatus(201);
+    }
+    return $res->write(json_encode($response))->withStatus(200);
 });
 
-$app->post('/users/signup',  function($req, $res, $args) {
-    $parsedBody = $req->getParsedBody();
-    $username = $parsedBody['username'];
+$app->post('/signup',  function($req, $res, $args) {
+    $parsedBody = $req->getParsedBody()["customer"];
     $email = $parsedBody['email'];
     $password = $parsedBody['password'];
-    $lastName = $parsedBody['last_name'];
-    $firstName = $parsedBody['first_name'];
+    $name = $parsedBody['name'];
     $address = $parsedBody['address'];
-    $saltedPass = md5($username . $password); 
-    if (isUsernameRegistered($username) or isEmailRegistered($email)) {
-        return $res->write("This username/email is already registered.")->withAddedHeader(
-            'status', 'error')->withStatus(200);
+    $saltedPass = md5($email . $password);
+    $phone = $parsedBody['phone'];
+    if (isEmailRegistered($email) === True) {
+        $response["status"] = "error";
+        $response["message"] = "This email is already registered.";
+        return $res->write(json_encode($response))->withStatus(201);
     }       
     $db = getMongo();
     $user = array(
-        'username' => $username,
         'email' => $email,
         'password' => $saltedPass,
-        'first_name' => $firstName,
-        'last_name' => $lastName, 
-        'address' => $address);
-    $db->users->insert(user);
-    return $res->write("Sign up succesful.")->withAddedHeader(
-        'status', 'success')->withStatus(200);
+        'name' => $name,
+        'address' => $address,
+        'phone' => $phone);
+    try {
+        $db->users->insert($user);
+    }
+    catch (MongoCursorException $mce) {
+        $response["status"] = "error";
+        $response["message"] = "Failure, mongoDB exception. Please try again";  
+        return $res->write(json_encode($response))->withStatus(201);
+    }
+    
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    $_SESSION['uid'] = $user["_id"];
+    $_SESSION['phone'] = $phone;
+    $_SESSION['name'] = $name;
+    $_SESSION['email'] = $email;
+
+    $response["status"] = "success";
+    $response["message"] = "User account created successfully";
+    return $res->write(json_encode($response))->withStatus(200);
 });
 
-$app->get('/users/orders/{username}{orderId}', function($req, $res, $args) {
+$app->get('/session', function($req, $res, $args) {
+    $session = getSession();
+    $response["uid"] = $session['uid'];
+    $response["email"] = $session['email'];
+    $response["name"] = $session['name'];
+    return $res->write(json_encode($response))->withStatus(200);
+});
+
+$app->get('/orders/{username}{orderId}', function($req, $res, $args) {
     $db = getMongo();
     $orderQuery = array('orderId' => $args['orderId'],
         'username' => $args['username']);
@@ -141,7 +223,7 @@ $app->get('/users/orders/{username}{orderId}', function($req, $res, $args) {
     return $res->write(json_encode($order, JSON_NUMERIC_CHECK));
 });
 
-$app->post('/users/orders/{username}{productIds}', function($req, $res, $args) {
+$app->post('/orders', function($req, $res, $args) {
     $db = getMongo();
     $orderQuery = array('username' => $args['username']);   
     $order = $db->orders->findOne($orderQuery);
@@ -157,7 +239,7 @@ $app->post('/users/orders/{username}{productIds}', function($req, $res, $args) {
         'productsIds' => $productIds,
         'username' => $args['username'],
         'order_date' => $orderDate); 
-    $db->orders->insert(order);
+    $db->orders->insert($order);
     return $res->write('Order succesful')->withStatus(200);
 });
 

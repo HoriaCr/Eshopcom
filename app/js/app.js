@@ -4,9 +4,11 @@
 
 var monshopApp = angular.module('monshopApp', [
   'ngRoute',
+  'toaster',
   'monshopAnimations',
 
   'monshopControllers',
+  'monshopDirectives',
   'monshopFilters',
   'monshopServices'
 ]);
@@ -22,15 +24,47 @@ monshopApp.config(['$routeProvider',
         templateUrl: 'partials/product-list.html',
         controller: 'ProductListCtrl'
      })
-     .when('/login', {
-        controller: 'LoginCtrl',
+     
+    .when('/login', {
+        title: 'Login',
         templateUrl: 'partials/login.html',
-      })
+        controller: 'authCtrl'
+     })
+     .when('/logout', {
+        title: 'Logout',
+        templateUrl: 'partials/login.html',
+        controller: 'logoutCtrl'
+     })
      .when('/signup', {
-        controller: 'SignupCtrl',
+        title: 'Signup',
         templateUrl: 'partials/signup.html',
-      })
-      .otherwise({
+        controller: 'authCtrl'
+     })
+     .when('/dashboard', {
+        title: 'Dashboard',
+        templateUrl: 'partials/dashboard.html',
+        controller: 'authCtrl'
+     })
+    .otherwise({
         redirectTo: '/categories/phones'
       });
-  }]);
+  }]).run(function ($rootScope, $location, Data) {
+        $rootScope.$on("$routeChangeStart", function (event, next, current) {
+            $rootScope.authenticated = false;
+            Data.get('session').then(function (results) {
+                if (results.uid) {
+                    $rootScope.authenticated = true;
+                    $rootScope.uid = results.uid;
+                    $rootScope.name = results.name;
+                    $rootScope.email = results.email;
+                } else {
+                    var nextUrl = next.$$route.originalPath;
+                    if (nextUrl == '/signup' || nextUrl == '/login') {
+
+                    } else {
+                        $location.path("/login");
+                    }
+                }
+            });
+        });
+});
