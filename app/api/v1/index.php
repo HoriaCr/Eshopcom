@@ -15,7 +15,8 @@ function getMongo() {
 }
 $mw = function ($request, $response, $next) {
     $response = $next($request, $response);
-    return $response->withHeader('Content-type', 'application/json')->withStatus(200);
+    return $response->withHeader(
+        'Content-type', 'application/json')->withStatus(200);
 };
 
 $app->get('/categories', function($req, $res, $args) { 
@@ -24,27 +25,6 @@ $app->get('/categories', function($req, $res, $args) {
     $categories = iterator_to_array($cursor);
     return $res->write(json_encode($categories, JSON_NUMERIC_CHECK));
 })->add($mw);
-
-$app->get('/phones/{phoneId}', function($req, $res, $args) {
-    $db = getMongo();
-    $phoneQuery = array('id' => $args['phoneId']);
-    $phone = $db->products->findOne($phoneQuery);
-    if ($phone != null) {
-        $phone = $phone["details"];
-    }
-    return $res->write(json_encode($phone, JSON_NUMERIC_CHECK));
-})->add($mw);
-
-$app->get('/phones', function($req, $res, $args) {
-    $db = getMongo();
-    $cursor = $db->products->find();
-    $respData = array();
-    foreach($cursor as $phone) {
-        array_push($respData, $phone);
-    }
-    return $res->write(json_encode($respData, JSON_NUMERIC_CHECK));
-})->add($mw);
-
 
 $app->get('/categories/{category}', function($req, $res, $args) { 
     $db = getMongo();

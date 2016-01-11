@@ -12,7 +12,7 @@ $db->drop();
 
 // Insert categories
 $collection = $db->createCollection("categories");
-$data = file_get_contents("data.json");
+$data = file_get_contents("categories.json");
 $categories = json_decode($data, true);
 $collection->batchInsert($categories);
 
