@@ -1,0 +1,115 @@
+/* app css stylesheet */
+
+body {
+  padding-top: 20px;
+}
+
+.product-images {
+  background-color: white;
+  width: 450px;
+  height: 450px;
+  overflow: hidden;
+  position: relative;
+  float: left;
+}
+
+.products {
+  list-style: none;
+}
+
+.thumb {
+  float: left;
+  margin: -0.5em 1em 1.5em 0;
+  padding-bottom: 1em;
+  height: 100px;
+  width: 100px;
+}
+
+.products li {
+  clear: both;
+  height: 115px;
+  padding-top: 15px;
+}
+
+.user-bar {
+    float: right;
+}
+.user-bar .dropbtn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.user-bar .dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.user-bar .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+
+
+/* Show the dropdown menu on hover */
+.user-bar .dropdown:hover .dropdown-content {
+    display: inline;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.user-bar .dropdown:hover .dropbtn {
+    background-color: #3e8e41;
+}
+
+.user-bar .dropdown:hover .dropdown-content {
+    display: inline;
+}
+
+/** Detail View **/
+img.product {
+  float: left;
+  margin-right: 3em;
+  margin-bottom: 2em;
+  background-color: white;
+  padding: 2em;
+  height: 400px;
+  width: 400px;
+  display: none;
+}
+
+img.product:first-child {
+  display: block;
+}
+
+
+ul.product-thumbs {
+  margin: 0;
+  list-style: none;
+}
+
+ul.product-thumbs li {
+  border: 1px solid black;
+  display: inline-block;
+  margin: 1em;
+  background-color: white;
+}
+
+ul.product-thumbs img {
+  height: 100px;
+  width: 100px;
+  padding: 1em;
+}
+
+ul.product-thumbs img:hover {
+  cursor: pointer;
+}
+
