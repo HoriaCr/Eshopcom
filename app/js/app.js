@@ -24,8 +24,12 @@ monshopApp.config(['$routeProvider',
         templateUrl: 'partials/product-list.html',
         controller: 'ProductListCtrl'
      })
-     
-    .when('/login', {
+     .when('/cart', {
+        title: 'Cart',
+        templateUrl: 'partials/cart.html',
+        controller: 'cartCtrl'
+     })
+     .when('/login', {
         title: 'Login',
         templateUrl: 'partials/login.html',
         controller: 'authCtrl'
@@ -54,17 +58,19 @@ monshopApp.config(['$routeProvider',
             Data.get('session').then(function (results) {
                 if (results.uid) {
                     $rootScope.authenticated = true;
-                    $rootScope.uid = results.uid;
-                    $rootScope.name = results.name;
-                    $rootScope.email = results.email;
                 } else {
-                    var nextUrl = next.$$route.originalPath;
+                    $rootScope.authenticated = false;
+                    var nextUrl = next.$$route.originalPath;   
                     if (nextUrl == '/signup' || nextUrl == '/login') {
 
                     } else {
-                        $location.path("/login");
+                        // $location.path("/login");
                     }
                 }
+
+                $rootScope.uid = results.uid;
+                $rootScope.name = results.name;
+                $rootScope.email = results.email;
             });
         });
 });

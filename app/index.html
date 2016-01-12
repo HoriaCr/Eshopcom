@@ -46,10 +46,11 @@
             </li>
           </ul>
         <ul class="user-bar">
-            <li class="dropdown" ng-class="{ active: isActive('/myAccount')}"><a href="#/myAccount">My account</a>
+            <li class="dropdown" ng-class="{ active: isActive('/myAccount')}"><a href="#/dashboard">My account</a>
             <div class="dropdown-content">
-                <a href="#">Sign up</a>
-                <a href="#">Login</a>
+                <a href="#/signup" ng-show="!authenticated">Sign up</a>
+                <a href="#/login" ng-show="!authenticated">Login</a> 
+                <a href="#/logout" ng-show="authenticated">Logout</a> 
             </div>
             </li>
             <li ng-class="{ active: isActive('/cart')}"><a href="#/cart">Cart</a></li>

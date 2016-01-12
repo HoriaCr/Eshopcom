@@ -57,10 +57,44 @@ monshopControllers.controller('authCtrl', function ($scope, $rootScope, $routePa
             }
         });
     };
-    $scope.logout = function () {
-        Data.get('logout').then(function (results) {
+});
+
+monshopControllers.controller('logoutCtrl',  function ($scope, $rootScope, $routeParams, $location, $http, Data) {
+     Data.get('logout').then(function (results) {
             Data.toast(results);
             $location.path('login');
-        });
-    }
+    });
 });
+
+
+monshopControllers.controller("cartCtrl", function($scope, $http) {
+	var serviceBase = 'api/v1/';
+    $scope.getTotal = function(){
+        var total = 0;
+        for(var i = 0; i < $scope.cart.length; i++){
+            var product = $scope.cart[i];
+            total += (product.price * product.quantity);
+        }
+        return total;
+    };
+    
+    $scope.addToCart = function(product) {
+        $http.post(serviceBase + 'addtocart', {product: product
+        }).then(function(results) {
+
+        });
+    };
+
+    $scope.removeFromCart = function(product) {
+        $http.post(serviceBase + 'removefromcart', {product: product
+        }).then(function(results) {
+            window.location.reload();
+        });
+        
+    };
+
+	$http.get(serviceBase + 'cart').then(function (results) {
+        $scope.cart = results.data;
+    });
+});
+

@@ -34,12 +34,14 @@ function getSession(){
         $sess["name"] = 'Guest';
         $sess["email"] = '';
     }
+    // Both logged users and guests can add to cart.
+    $sess["cart"] = $_SESSION['cart'];
     return $sess;
 }
 
 function destroySession(){
     if (!isset($_SESSION)) {
-    session_start();
+        session_start();
     }
     if(isSet($_SESSION['uid']))
     {
@@ -215,32 +217,103 @@ $app->get('/session', function($req, $res, $args) {
     return $res->write(json_encode($response))->withStatus(200);
 });
 
-$app->get('/orders/{username}{orderId}', function($req, $res, $args) {
-    $db = getMongo();
-    $orderQuery = array('orderId' => $args['orderId'],
-        'username' => $args['username']);
-    $order = $db->orders->findOne($orderQuery);
-    return $res->write(json_encode($order, JSON_NUMERIC_CHECK));
-});
 
-$app->post('/orders', function($req, $res, $args) {
-    $db = getMongo();
-    $orderQuery = array('username' => $args['username']);   
-    $order = $db->orders->findOne($orderQuery);
-    if ($order == null) { 
-        $orderId = 0; 
-    } else {
-        $orderId = $order["id"] + 1;
+$app->post('/order', function($req, $res, $args) { 
+    $session = getSession();
+    if (empty(cart)) {
+        $response["status"] = "error";
+        $response["message"] = "Order failed, cart is empty!";
+        return $res->write(json_encode($response))->withStatus(201);
     }
-    $productIds = explode(",", $args['productIds']);
+    if ($session['email'] === 'Guest') {
+        $response["status"] = "error";
+        $response["message"] = "Only logged users can order!";
+        return $res->write(json_encode($response))->withStatus(201);
+    }
+    $email = $session['email'];
+    $cart = $session["cart"];
     $orderDate = date('m/d/Y h:i:s a', time());
+    
     $order = array(
-        'orderId' => $orderId,
-        'productsIds' => $productIds,
-        'username' => $args['username'],
+        'products' => $cart,
+        'email' => $email,
         'order_date' => $orderDate); 
     $db->orders->insert($order);
-    return $res->write('Order succesful')->withStatus(200);
+    // empty cart
+    $_SESSION['cart'] = array();
+    $response["status"] = "success";
+    $response["message"] = "Order sent successfully";
+    return $res->write(json_encode($response))->withStatus(200);
+});
+
+$app->get('/orders', function($req, $res, $args) {
+    $session = getSession(); 
+    $email = $session['email'];
+    $db = getMongo();
+    $orderQuery = array('email' => $email);   
+    $cursor = $db->orders->find($orderQuery);
+    $orders = iterator_to_array($cursor);
+    return $res->write(json_encode($orders, JSON_NUMERIC_CHECK));
+});
+
+$app->get('/cart', function($req, $res, $args) {
+    $session = getSession();
+    $cart = $session["cart"];
+    return $res->write(json_encode($cart, JSON_NUMERIC_CHECK));
+});
+
+$app->post('/addtocart', function($req, $res, $args) {
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    
+    if(!isSet($_SESSION['cart'])) {
+        $_SESSION['cart'] = array();
+    }
+
+    $product = $req->getParsedBody()['product'];
+    $product['quantity'] = 1;
+    foreach ($_SESSION['cart'] as &$p) {
+        if ($p['id'] === $product['id']) {
+            $p['quantity'] += 1;
+            $product['quantity'] = 0;
+        } 
+    }
+    if ($product['quantity'] > 0) {
+        array_push($_SESSION['cart'], $product);
+    }
+    $response["status"] = "success";
+    $response["message"] = "Product added to cart successfully!";
+
+    return $res->write(json_encode($response))->withStatus(200);
+});
+
+$app->post('/removefromcart', function($req, $res, $args) {
+    if (!isset($_SESSION)) {
+        session_start();
+    }
+    
+    if(!isSet($_SESSION['cart'])) {
+        $_SESSION['cart'] = array();
+    }
+    $product = $req->getParsedBody()['product'];
+    $found = false;
+    foreach (array_keys($_SESSION['cart']) as $key) {
+        if ($_SESSION['cart'][$key]['id'] === $product['id']) {
+            unset($_SESSION['cart'][$key]);
+            $found = true;
+        } 
+    }
+
+    if ($found === false) {
+        $response["status"] = "error";
+        $response["message"] = "No such product in cart!";
+        return $res->write(json_encode($response))->withStatus(201);
+    }
+    $response["status"] = "success";
+    $response["message"] = "Product removed from cart successfully!";
+
+    return $res->write(json_encode($response))->withStatus(200);
 });
 
 $app->run();

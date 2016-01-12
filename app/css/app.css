@@ -74,6 +74,14 @@ body {
     display: inline;
 }
 
+.product-price {
+    float: left;
+}
+
+.cart-add {
+    float: right;
+}
+
 /** Detail View **/
 img.product {
   float: left;
