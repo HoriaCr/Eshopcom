@@ -43,3 +43,11 @@ monshopServices.factory("Data", ['$http', 'toaster',
 
         return obj;
 }]);
+
+
+monshopServices.factory('Order', ['$resource',
+  function($resource){
+    return $resource('api/v1/orders', {}, {
+        query: {method:'GET', isArray:true}
+  });
+}]);

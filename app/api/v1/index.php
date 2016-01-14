@@ -220,12 +220,14 @@ $app->get('/session', function($req, $res, $args) {
 
 $app->post('/order', function($req, $res, $args) { 
     $session = getSession();
-    if (empty(cart)) {
+    $cart = $session['cart'];
+    if (empty($cart)) {
         $response["status"] = "error";
         $response["message"] = "Order failed, cart is empty!";
         return $res->write(json_encode($response))->withStatus(201);
-    }
-    if ($session['email'] === 'Guest') {
+    } else
+    // check if the user is logged in
+    if ($session['email'] === '') {
         $response["status"] = "error";
         $response["message"] = "Only logged users can order!";
         return $res->write(json_encode($response))->withStatus(201);
@@ -237,7 +239,8 @@ $app->post('/order', function($req, $res, $args) {
     $order = array(
         'products' => $cart,
         'email' => $email,
-        'order_date' => $orderDate); 
+        'order_date' => $orderDate);
+    $db = getMongo(); 
     $db->orders->insert($order);
     // empty cart
     $_SESSION['cart'] = array();
@@ -252,8 +255,11 @@ $app->get('/orders', function($req, $res, $args) {
     $db = getMongo();
     $orderQuery = array('email' => $email);   
     $cursor = $db->orders->find($orderQuery);
-    $orders = iterator_to_array($cursor);
-    return $res->write(json_encode($orders, JSON_NUMERIC_CHECK));
+    $respData = array();
+    foreach($cursor as $order) {
+        array_push($respData, $order);
+    }
+    return $res->write(json_encode($respData, JSON_NUMERIC_CHECK));
 });
 
 $app->get('/cart', function($req, $res, $args) {

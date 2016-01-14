@@ -67,7 +67,7 @@ monshopControllers.controller('logoutCtrl',  function ($scope, $rootScope, $rout
 });
 
 
-monshopControllers.controller("cartCtrl", function($scope, $http) {
+monshopControllers.controller("cartCtrl", function($scope, $http, $location) {
 	var serviceBase = 'api/v1/';
     $scope.getTotal = function(){
         var total = 0;
@@ -93,8 +93,26 @@ monshopControllers.controller("cartCtrl", function($scope, $http) {
         
     };
 
+    $scope.sendOrder = function() {
+        $http.post(serviceBase + 'order').then(function(results) {
+            if (results.status == "success") {
+                window.location.reload();
+                window.alert("Order sent successfully!");
+            } else
+            if (results.status == "error" && results.message == 
+                "Only logged users can order!") {
+                $location.path('signup');
+            }
+        });
+    };
+
 	$http.get(serviceBase + 'cart').then(function (results) {
         $scope.cart = results.data;
     });
 });
 
+monshopControllers.controller('orderCtrl', ['$scope', '$routeParams', 'Order',
+  function($scope, $routeParams, Order) {
+    $scope.orders = Order.query();
+    $scope.orderProp = 'order_date';
+}]);

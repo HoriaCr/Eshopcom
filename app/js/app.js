@@ -24,6 +24,11 @@ monshopApp.config(['$routeProvider',
         templateUrl: 'partials/product-list.html',
         controller: 'ProductListCtrl'
      })
+     .when('/orders', {
+        title: 'Orders',
+        templateUrl: 'partials/orders.html',
+        controller: 'orderCtrl'
+     })
      .when('/cart', {
         title: 'Cart',
         templateUrl: 'partials/cart.html',
