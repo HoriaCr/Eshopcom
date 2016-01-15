@@ -11,7 +11,7 @@ function getMongo() {
     $dbhost = DB_HOST;
     $dbname = DB_NAME;
     // Connect to test database
-    $m = new Mongo("mongodb://$dbhost");
+    $m = new MongoClient("mongodb://$dbhost");
     $db = $m->$dbname;
     return $db;
 }
