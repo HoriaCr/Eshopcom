@@ -8,7 +8,7 @@ PHP 5.5
 MongoDb
 Composer
 
-# Deployment for Ubuntu 15.04
+# Deployment for Ubuntu 15.10
 This will install all prerequisites for Ubuntu.
 ```
 chmod +x conf.sh
