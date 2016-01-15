@@ -21,7 +21,8 @@ sudo mkdir -p /data/db
 sudo mongod
 ```
 
-Install php dependencies with composer and opulate the database with data.
+Install php dependencies with composer and populate the database with data.
+
 In app/api/v1/ run:
 ```
 composer install
