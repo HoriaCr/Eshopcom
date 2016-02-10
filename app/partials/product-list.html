@@ -20,7 +20,7 @@
             <a href="#/categories/{{product.category}}/{{product.id}}" class="thumb"><img ng-src="{{product.imageUrl}}"></a>
           <a href="#/categories/{{product.category}}/{{product.id}}">{{product.name}}</a>
           <p>{{product.snippet}}</p>
-          <p class="product-price">${{product.price}}</p>
+          <p class="product-price">${{product.price}} | Stock: {{product.stock}}</p>
           <p class="cart-add"> <a href="#/cart" ng-click="addToCart(product);">Add to Cart </a></p>
           <div style="clear: both;"></div>
         </li>
