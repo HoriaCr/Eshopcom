@@ -1,0 +1,7 @@
+
+<ul class="orders">
+    <li ng-repeat="order in orders | filter:query | orderBy:orderProp"
+        ng-controller="orderCtrl">
+        {{order._id.$id}}  {{order.order_date}}
+    </li>
+</ul>

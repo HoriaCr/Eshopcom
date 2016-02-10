@@ -1,0 +1,15 @@
+
+<ul class="products">
+<li ng-repeat="product in cart"
+    class="thumbnail product-listing" ng-controller="cartCtrl">
+    <a href="#/categories/{{product.category}}/{{product.id}}" class="thumb"><img ng-src="{{product.imageUrl}}"></a>
+  <a href="#/categories/{{product.category}}/{{product.id}}">{{product.name}}</a>
+  <p>Qty: {{product.quantity}}</p>
+  <p>Price: ${{product.price}}</p>
+  <p><a href="#/cart" ng-click="removeFromCart(product);">Remove from cart</a></p>
+</li>
+
+<p>Total: {{getTotal()}}</p>
+<br/>
+<p><a href="#/home" ng-click="sendOrder();">Order</a></p>
+</ul>
