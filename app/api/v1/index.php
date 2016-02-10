@@ -11,7 +11,7 @@ function getMongo() {
     $dbhost = DB_HOST;
     $dbname = DB_NAME;
     // Connect to test database
-    $m = new MongoClient("mongodb://$dbhost");
+    $m = new Mongo("mongodb://$dbhost");
     $db = $m->$dbname;
     return $db;
 }
@@ -240,7 +240,26 @@ $app->post('/order', function($req, $res, $args) {
         'products' => $cart,
         'email' => $email,
         'order_date' => $orderDate);
-    $db = getMongo(); 
+     
+    $db = getMongo();
+    
+    foreach ($_SESSION['cart'] as $p) { 
+        $productQuery = array(
+            'id' => $p['id'],
+        );
+        $product = $db->products->findOne($productQuery);
+        if ($product['stock'] < $p['quantity']) { 
+            $response["status"] = "error";
+            $response["message"] = "Some products are out of stock!";
+            return $res->write(json_encode($response))->withStatus(201);
+        }
+    }
+
+    foreach ($_SESSION['cart'] as $p) { 
+        $db->products->update(array('id' => $p['id']),
+            array('$inc' => array('stock' => -$p['quantity'])), 
+            array('upsert' => true));
+    }
     $db->orders->insert($order);
     // empty cart
     $_SESSION['cart'] = array();
